@@ -299,11 +299,135 @@ table.tt input { width: 7.2em; font-size: 13.5px; padding: 6px 8px; }
 .chip .c { font-family: var(--f-mono); font-size: 12px; color: var(--muted); font-weight: 400; }
 </style>
 
+<style>
+/* ---------- Study tools additions: practice, dashboard, bookmarks & notes, search, backup ----------
+   Only new selectors. Colours come from the existing light/dark variables so both themes keep working. */
+.tools-open { appearance: none; display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 14px; background: var(--surface); border: 1px solid var(--line); color: var(--ink); font: 600 13.5px/1 var(--f-body); border-radius: 999px; cursor: pointer; white-space: nowrap; }
+.tools-open:hover { border-color: var(--accent); }
+.tools-open:focus-visible { outline: 1px solid var(--btn); outline-offset: 2px; }
+.tools-open[aria-expanded="true"] { background: var(--accent-soft); border-color: var(--btn); }
+
+.tools { display: grid; gap: 16px; }
+.tools-head { display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; }
+.tools-title { margin: 0; font-family: var(--f-display); font-weight: 800; font-size: 26px; line-height: 1.15; }
+.tools-lead { margin: 4px 0 0; color: var(--muted); max-width: 72ch; }
+.tools-tabs { display: flex; flex-wrap: wrap; gap: 6px; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+.tools-tab { appearance: none; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: 600 13.5px/1.2 var(--f-body); padding: 9px 12px; border-radius: 999px; cursor: pointer; display: inline-flex; gap: 6px; align-items: center; }
+.tools-tab:hover { border-color: var(--accent); }
+.tools-tab[aria-selected="true"] { background: var(--btn); border-color: var(--btn); color: var(--on-btn); }
+.tools-tab:focus-visible { outline: 2px solid var(--btn); outline-offset: 2px; }
+.tools-tab .n { font-family: var(--f-mono); font-size: 12px; font-weight: 600; padding: 2px 6px; border-radius: 999px; background: var(--surface-2); color: var(--muted); }
+.tools-tab[aria-selected="true"] .n { background: rgba(255, 255, 255, .22); color: var(--on-btn); }
+.tool-pane { display: grid; gap: 16px; }
+.tool-block { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px 18px; display: grid; gap: 12px; box-shadow: var(--shadow); }
+.tool-block h3 { margin: 0; font-family: var(--f-display); font-weight: 700; font-size: 19px; }
+.tool-block h4 { margin: 0; font-family: var(--f-display); font-weight: 700; font-size: 16px; }
+.tool-note { margin: 0; color: var(--muted); font-size: 14.5px; max-width: 82ch; }
+.tool-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.tool-status { margin: 0; font: 600 13px/1.45 var(--f-body); color: var(--muted); }
+.tool-status[data-s="pass"] { color: var(--pass); }
+.tool-status[data-s="fail"] { color: var(--fail); }
+.tool-status:empty { display: none; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* dashboard */
+.dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.stat { background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 10px 12px; display: grid; gap: 2px; align-content: start; }
+.stat-k { font-family: var(--f-mono); font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.stat-v { font-family: var(--f-display); font-weight: 800; font-size: 24px; font-variant-numeric: tabular-nums; }
+.stat-s { font-size: 12.5px; color: var(--muted); }
+.table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.dash-table { border-collapse: collapse; width: 100%; min-width: 620px; font-size: 14px; }
+.dash-table thead th { font-family: var(--f-mono); font-size: 11.5px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); font-weight: 600; text-align: right; padding: 6px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.dash-table thead th:first-child { text-align: left; }
+.dash-table tbody th { text-align: left; font-weight: 600; padding: 7px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.dash-table tbody th .tool-status { display: inline; font-weight: 400; }
+.dash-table tbody td { padding: 7px 10px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.dash-table tbody tr:last-child th, .dash-table tbody tr:last-child td { border-bottom: 0; }
+
+/* practice */
+.practice-list { display: grid; gap: 14px; }
+.prac-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px 18px; display: grid; gap: 12px; }
+.prac-head { display: flex; gap: 8px 10px; align-items: center; flex-wrap: wrap; }
+.prac-head .status { margin-left: auto; }
+.prac-id { font-family: var(--f-mono); font-size: 12px; padding: 2px 7px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); }
+.prac-meta { margin: -4px 0 0; color: var(--muted); font-size: 13.5px; }
+.prac-body { display: grid; gap: 12px; min-width: 0; }
+.prac-fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: 8px; min-width: 0; }
+.prac-fieldset legend { padding: 0; }
+.prac-opts { display: grid; gap: 6px; }
+.prac-opt { display: flex; gap: 9px; align-items: flex-start; border: 1px solid var(--line); border-radius: var(--r-sm); padding: 9px 11px; background: var(--surface-2); cursor: pointer; }
+.prac-opt:hover { border-color: var(--accent); }
+.prac-opt input { margin: 3px 0 0; }
+.prac-opt .letter { font-family: var(--f-mono); font-weight: 700; color: var(--muted); }
+.prac-opt input:focus-visible { outline: 1px solid var(--btn); outline-offset: 1px; }
+.prac-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.prac-fb { display: grid; gap: 8px; }
+.prac-fb:empty { display: none; }
+.prac-correct { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+
+/* bookmarks */
+.bookmarks-list { display: grid; gap: 10px; }
+.bm-item { border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; display: grid; gap: 6px; background: var(--surface-2); }
+.bm-head { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.bm-id { font-family: var(--f-mono); font-size: 12px; color: var(--muted); }
+.bm-title { font-weight: 700; }
+.bm-meta { margin: 0; color: var(--muted); font-size: 13px; }
+.bm-note { margin: 0; background: var(--surface); border-left: 3px solid var(--accent); padding: 6px 10px; border-radius: 0 var(--r-sm) var(--r-sm) 0; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14px; }
+.bm-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* search */
+.search-form { display: flex; gap: 10px; flex-wrap: wrap; }
+.search-form input[type="search"] { flex: 1 1 260px; font: 15px var(--f-body); color: var(--ink); background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 10px 12px; min-width: 0; }
+.search-form input[type="search"]:focus-visible { outline: 1px solid var(--btn); outline-offset: 1px; }
+.search-results { display: grid; gap: 10px; }
+.sr-item { border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; display: grid; gap: 6px; }
+.sr-head { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.sr-snip { margin: 0; color: var(--muted); font-size: 13.5px; }
+
+/* per-question tools (bookmark, note, link) */
+.qtools { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; border-top: 1px dashed var(--line); padding-top: 12px; }
+.qt-btn { appearance: none; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); font: 600 12.5px/1 var(--f-body); padding: 7px 10px; border-radius: var(--r-sm); cursor: pointer; }
+.qt-btn:hover { border-color: var(--accent); }
+.qt-btn:focus-visible { outline: 1px solid var(--btn); outline-offset: 2px; }
+.qt-btn[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--btn); color: var(--accent); }
+.qt-msg { font: 600 12.5px/1.4 var(--f-body); color: var(--muted); }
+.qt-msg[data-s="pass"] { color: var(--pass); }
+.qt-msg[data-s="fail"] { color: var(--fail); }
+.qt-link { font: 12px var(--f-mono); width: 36ch; max-width: 100%; }
+.qt-note { flex: 1 1 100%; }
+.qt-note summary { cursor: pointer; font: 600 12.5px/1.4 var(--f-body); color: var(--accent); }
+.qt-note summary:focus-visible { outline: 1px solid var(--btn); outline-offset: 2px; }
+.qt-note textarea { margin-top: 8px; }
+.qt-note-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 8px; }
+.qt-notestatus { font: 600 12.5px/1.4 var(--f-body); color: var(--muted); }
+.qt-notestatus[data-s="pass"] { color: var(--pass); }
+.qt-notestatus[data-s="fail"] { color: var(--fail); }
+
+/* import preview */
+.import-preview { display: grid; gap: 10px; border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; background: var(--surface-2); }
+.import-preview[hidden] { display: none; }
+.import-preview ul { margin: 0; padding-left: 20px; display: grid; gap: 3px; font-size: 13.5px; }
+.import-preview .dash-table { min-width: 380px; }
+.check { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; }
+.check input { margin: 4px 0 0; }
+.check input:focus-visible { outline: 1px solid var(--btn); outline-offset: 2px; }
+.q-flash { outline: 2px solid var(--btn); outline-offset: 3px; }
+
+@media (max-width: 520px) {
+  .tool-block { padding: 14px; }
+  .tools-title { font-size: 22px; }
+  .qtools { gap: 6px; }
+  .prac-card { padding: 14px; }
+}
+</style>
+
 <div class="wrap">
   <header class="top">
     <div class="toprow"><span class="eyebrow">Introduction to Programming · Python</span>
       <div class="settings">
         <div class="seg" role="radiogroup" aria-label="Which questions to show"><button type="button" role="radio" data-mode="important" aria-checked="true">Important only</button><button type="button" role="radio" data-mode="all" aria-checked="false">All questions</button></div>
+        <button class="tools-open" type="button" id="tools-open" aria-expanded="false" aria-controls="panel-tools">Study tools</button>
         <button class="theme-btn" type="button" id="theme-btn" aria-label="Switch to dark mode" title="Switch to dark mode"><span class="ico" aria-hidden="true"></span></button>
       </div></div>
     <h1>Revision Website</h1>
@@ -343,6 +467,82 @@ table.tt input { width: 7.2em; font-size: 13.5px; padding: 6px 8px; }
   <section class="panel" id="panel-m2" role="tabpanel" aria-labelledby="tab-m2" hidden></section>
   <section class="panel" id="panel-m3" role="tabpanel" aria-labelledby="tab-m3" hidden></section>
   <section class="panel" id="panel-m4" role="tabpanel" aria-labelledby="tab-m4" hidden></section>
+  <section class="panel tools" id="panel-tools" role="region" aria-labelledby="tools-title" hidden>
+    <div class="tools-head">
+      <div>
+        <h2 class="tools-title" id="tools-title">Study tools</h2>
+        <p class="tools-lead">Practise the questions you answered incorrectly, see how much you have done, bookmark questions with your own notes, find any question, and back up your progress. Everything here is saved in this browser only.</p>
+      </div>
+      <button class="btn sec" type="button" id="tools-close">Back to questions</button>
+    </div>
+    <div class="tools-tabs" role="tablist" aria-label="Study tools">
+      <button class="tools-tab" type="button" role="tab" id="tool-tab-practice" data-tool="practice" aria-controls="tool-practice" aria-selected="true">Practise my mistakes <span class="n" id="n-mistakes">0</span></button>
+      <button class="tools-tab" type="button" role="tab" id="tool-tab-dashboard" data-tool="dashboard" aria-controls="tool-dashboard" aria-selected="false">Progress dashboard</button>
+      <button class="tools-tab" type="button" role="tab" id="tool-tab-bookmarks" data-tool="bookmarks" aria-controls="tool-bookmarks" aria-selected="false">Bookmarks &amp; notes <span class="n" id="n-bookmarks">0</span></button>
+      <button class="tools-tab" type="button" role="tab" id="tool-tab-search" data-tool="search" aria-controls="tool-search" aria-selected="false">Search</button>
+      <button class="tools-tab" type="button" role="tab" id="tool-tab-backup" data-tool="backup" aria-controls="tool-backup" aria-selected="false">Export / import</button>
+    </div>
+
+    <div class="tool-pane" id="tool-practice" role="tabpanel" aria-labelledby="tool-tab-practice">
+      <div class="tool-block">
+        <h3>Practise my mistakes</h3>
+        <p class="tool-note">This lists the questions you answered incorrectly. A practice attempt is saved separately from your original result, so nothing in your progress record is reset. Questions appear in the bank's own order.</p>
+        <div class="tool-row">
+          <button class="btn sec" type="button" id="practice-reload">Refresh this list</button>
+          <span class="tool-status" id="practice-status" role="status" aria-live="polite"></span>
+        </div>
+        <div class="practice-list" id="practice-list"></div>
+      </div>
+    </div>
+
+    <div class="tool-pane" id="tool-dashboard" role="tabpanel" aria-labelledby="tool-tab-dashboard" hidden>
+      <div id="dashboard-body" class="dashboard"></div>
+    </div>
+
+    <div class="tool-pane" id="tool-bookmarks" role="tabpanel" aria-labelledby="tool-tab-bookmarks" hidden>
+      <div class="tool-block">
+        <h3>Bookmarked questions and your notes</h3>
+        <p class="tool-note">Bookmark a question from the question card, then keep your own note with it. Notes are shown here as plain text and are saved in this browser only.</p>
+        <div class="bookmarks-list" id="bookmarks-body"></div>
+      </div>
+    </div>
+
+    <div class="tool-pane" id="tool-search" role="tabpanel" aria-labelledby="tool-tab-search" hidden>
+      <div class="tool-block">
+        <h3>Search questions</h3>
+        <form class="search-form" id="search-form" role="search">
+          <label class="sr-only" for="search-input">Search by question ID, title, prompt, module or topic</label>
+          <input type="search" id="search-input" name="q" autocomplete="off" placeholder="Question ID (d1n-q1), a word from the question, a module number or a topic (Strings)">
+          <button class="btn" type="submit">Search</button>
+        </form>
+        <p class="tool-note">Search looks at question IDs, titles, prompts, module numbers and topic names. It does not search answers, sample solutions or explanations.</p>
+        <p class="tool-status" id="search-status" role="status" aria-live="polite"></p>
+        <div class="search-results" id="search-results"></div>
+      </div>
+    </div>
+
+    <div class="tool-pane" id="tool-backup" role="tabpanel" aria-labelledby="tool-tab-backup" hidden>
+      <div class="tool-block">
+        <h3>Export your progress</h3>
+        <p class="tool-note">This downloads one JSON file containing your answers, practice attempts, bookmarks and notes. It is the only copy of that file, so keep it somewhere safe: this website cannot get a deleted backup back for you.</p>
+        <div class="tool-row">
+          <button class="btn" type="button" id="export-btn">Download backup (.json)</button>
+          <span class="tool-status" id="export-status" role="status" aria-live="polite"></span>
+        </div>
+      </div>
+      <div class="tool-block">
+        <h3>Import a backup</h3>
+        <p class="tool-note">Importing <strong>merges</strong> the file into what is already saved here. If the file and this browser disagree about the same question, your local answer is kept unless you tick the box below. Nothing is deleted, and you can download a copy of your current data before applying the import.</p>
+        <div class="field">
+          <label for="import-file">Choose a backup file (.json, up to 2 MB)</label>
+          <input type="file" id="import-file" accept="application/json,.json">
+        </div>
+        <label class="check"><input type="checkbox" id="import-replace"> Replace my local entry when the backup has one for the same question</label>
+        <div class="import-preview" id="import-preview" hidden></div>
+        <p class="tool-status" id="import-status" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </section>
 </div>
 
 <div class="welcome" id="welcome" hidden>
@@ -1031,6 +1231,1246 @@ buildAll();
 fromHash();
 window.addEventListener("hashchange", fromHash);
 if (firstVisit) openWelcome();
+</script>
+
+<script>
+/* ============================================================
+   STUDY TOOLS — five additive features
+     1. Practise my mistakes
+     2. Progress dashboard
+     3. Bookmarks and personal notes
+     4. Search and direct question links
+     5. Progress export / import
+   This block only reads the existing data and adds new storage
+   keys. It never writes to the original answers of the site.
+   ============================================================ */
+(function () {
+  "use strict";
+
+  var NOTES_KEY = "py-question-bank-notes-v1";
+  var BOOKMARK_KEY = "py-question-bank-bookmarks-v1";
+  var PRACTICE_KEY = "py-question-bank-practice-v1";
+  var BACKUP_SITE = "introduction-to-python-revision";
+  var BACKUP_SCHEMA = "py-revision-backup";
+  var BACKUP_VERSION = 1;
+  var MAX_IMPORT_BYTES = 2 * 1024 * 1024;
+  var MAX_NOTE = 5000;
+  var MAX_ATTEMPTS = 20;
+
+  var IDS = {};
+  DATA.items.forEach(function (q) { IDS[q.id] = q; });
+
+  var storageOk = true;
+  try {
+    var probe = "py-question-bank-probe-v1";
+    localStorage.setItem(probe, "1");
+    localStorage.removeItem(probe);
+  } catch (e) { storageOk = false; }
+
+  function isObj(v) { return !!v && typeof v === "object" && !Array.isArray(v); }
+  function readJSON(key, fallback) {
+    try {
+      var raw = localStorage.getItem(key);
+      if (!raw) return fallback;
+      var value = JSON.parse(raw);
+      return isObj(value) ? value : fallback;
+    } catch (e) { return fallback; }
+  }
+  function writeJSON(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); return true; }
+    catch (e) { return false; }
+  }
+
+  var NOTES = readJSON(NOTES_KEY, {});
+  var BOOKMARKS = readJSON(BOOKMARK_KEY, {});
+  var PRACTICE = readJSON(PRACTICE_KEY, {});
+
+  function fmtWhen(ts) {
+    try { return new Date(ts).toLocaleString(); } catch (e) { return "an earlier visit"; }
+  }
+  function pct(n, d) { return d ? Math.round(100 * n / d) + "%" : "—"; }
+  function setStatus(el, text, kind) {
+    if (!el) return;
+    el.textContent = text || "";
+    if (kind) el.dataset.s = kind; else el.removeAttribute("data-s");
+  }
+  function partName(p) { return (PART_NAME[p] || p); }
+  function topicNames(q) { return q.t.map(function (t) { return TOPICS[t]; }).join(", "); }
+
+  /* ---------- 1. Practise my mistakes ---------- */
+
+  function mistakes() { return DATA.items.filter(function (q) { return st(q.id) === "fail"; }); }
+
+  function lastPractice(id) {
+    var p = PRACTICE[id];
+    if (!p || !Array.isArray(p.attempts) || !p.attempts.length) return null;
+    return p.attempts[p.attempts.length - 1];
+  }
+
+  function recordPractice(id, result, mode) {
+    var p = PRACTICE[id];
+    if (!p || !Array.isArray(p.attempts)) p = { attempts: [] };
+    p.attempts.push({ at: Date.now(), result: result, mode: mode });
+    if (p.attempts.length > MAX_ATTEMPTS) p.attempts = p.attempts.slice(-MAX_ATTEMPTS);
+    PRACTICE[id] = p;
+    return writeJSON(PRACTICE_KEY, PRACTICE);
+  }
+
+  function pracBody(q) {
+    var k = q.k;
+    if (k === "mcq") {
+      var type = q.multi ? "checkbox" : "radio";
+      return (q.code ? pre(q.code) : "") +
+        '<fieldset class="prac-fieldset"><legend class="lbl">Choose ' + (q.multi ? "all the correct options" : "one option") + '</legend><div class="prac-opts">' +
+        q.opts.map(function (o, i) {
+          return '<label class="prac-opt"><input type="' + type + '" name="prac-' + q.id + '" value="' + i + '" data-pans><span class="letter">' + "ABCDE"[i] + '</span><span>' + (q.codeOpts ? '<code class="i">' + esc(o) + '</code>' : inline(o)) + '</span></label>';
+        }).join("") + "</div></fieldset>";
+    }
+    if (k === "predict") {
+      return (q.code ? pre(q.code) : "") + '<div class="field"><label for="prac-' + q.id + '-a0">' +
+        (q.part === "debugging" ? "The output, or the kind of error" : "The output you expect") +
+        '</label><textarea id="prac-' + q.id + '-a0" data-pans spellcheck="false" placeholder="' +
+        (q.output === "" ? "Type the output, or “nothing” if nothing is printed" : "Type the output, one line per printed line") + '"></textarea></div>';
+    }
+    if (k === "trace") {
+      return (q.code ? pre(q.code) : "") + q.cases.map(function (c, i) {
+        return '<div class="field"><label for="prac-' + q.id + '-a' + i + '">When ' + esc(c[0]) + '</label><textarea id="prac-' + q.id + '-a' + i + '" data-pans spellcheck="false" placeholder="Type the output"></textarea></div>';
+      }).join("");
+    }
+    if (k === "fill") {
+      return pre(q.code) + q.blanks.map(function (_, i) {
+        return '<div class="field"><label for="prac-' + q.id + '-a' + i + '">' + (q.blanks.length > 1 ? "Blank (" + (i + 1) + ")" : "The blank") + '</label><input type="text" id="prac-' + q.id + '-a' + i + '" data-pans autocomplete="off" spellcheck="false"></div>';
+      }).join("");
+    }
+    if (k === "parsons") {
+      return pre(q.lines.map(function (l, i) { return (i + 1) + "  " + l; }).join("\n")) +
+        '<div class="field"><label for="prac-' + q.id + '-a0">Line numbers in the right order (leave out the line you don\'t need)</label><input type="text" id="prac-' + q.id + '-a0" data-pans placeholder="e.g. 3, 7, 5" autocomplete="off"></div>';
+    }
+    if (k === "tracetable") {
+      var rows = q.rows.map(function (r, ri) {
+        return "<tr>" + r.map(function (c, ci) {
+          return '<td><input type="text" id="prac-' + q.id + '-c' + ri + "-" + ci + '" aria-label="Row ' + (ri + 1) + ', ' + esc(q.head[ci]) + '" data-pcell="' + ri + "-" + ci + '" autocomplete="off" spellcheck="false"></td>';
+        }).join("") + "</tr>";
+      }).join("");
+      return pre(q.code) + '<p class="lbl">Your trace table</p><div class="tt-wrap"><table class="tt"><thead><tr>' +
+        q.head.map(function (h) { return "<th>" + esc(h) + "</th>"; }).join("") + "</tr></thead><tbody>" + rows + "</tbody></table></div>";
+    }
+    if (k === "debug") {
+      return pre(q.code) + '<fieldset class="prac-fieldset"><legend class="lbl">What kind of error is it?</legend><div class="prac-opts">' +
+        ["Syntax error", "Runtime error", "Logic error"].map(function (t) {
+          return '<label class="prac-opt"><input type="radio" name="prac-' + q.id + '" value="' + t.split(" ")[0].toLowerCase() + '" data-pkind><span>' + t + "</span></label>";
+        }).join("") + "</div></fieldset>";
+    }
+    if (k === "refute") {
+      var R = REFUTE[q.id];
+      if (!R) return pre(q.code) + '<p class="tool-note">This question cannot be practised automatically.</p>';
+      return pre(q.code) + '<p class="lbl">Your argument values</p><div class="argrow">' + R.args.map(function (a, i) {
+        return a.type === "bool"
+          ? '<label for="prac-' + q.id + '-g' + i + '">' + a.n + ' = <select id="prac-' + q.id + '-g' + i + '" data-parg><option>True</option><option>False</option></select></label>'
+          : '<label for="prac-' + q.id + '-g' + i + '">' + a.n + ' = <input type="number" step="1" ' + (a.min !== undefined ? 'min="' + a.min + '" ' : "") + 'id="prac-' + q.id + '-g' + i + '" data-parg inputmode="numeric"></label>';
+      }).join("") + "</div>";
+    }
+    if (k === "write") {
+      return (q.code ? '<div class="block"><p class="lbl">Starter code</p>' + pre(q.code) + "</div>" : "") +
+        '<p class="tool-note">This is a code-writing question, so it is not graded automatically. Write your program in Python, then compare it with the sample solution and mark it yourself.</p>';
+    }
+    return '<p class="tool-note">This question type is not supported in practice mode.</p>';
+  }
+
+  function pracAnswer(q) {
+    if (ANSWER[q.k]) return ANSWER[q.k](q);
+    if (q.k === "mcq") {
+      var right = q.multi ? q.ans : [q.ans];
+      return '<p class="lbl">Correct answer</p><ul class="prac-correct">' + right.map(function (i) {
+        return "<li><b>" + ("ABCDE"[i] || "") + "</b> " + (q.codeOpts ? "<code class=\"i\">" + esc(q.opts[i]) + "</code>" : inline(q.opts[i])) + "</li>";
+      }).join("") + "</ul>";
+    }
+    if (q.k === "debug") {
+      return '<p class="lbl">Answer</p><p><b>' + esc(q.errType) + "</b></p><p class=\"lbl\">Running the original code gives</p>" + outBlock(q.output) +
+        (q.fixed ? '<p class="lbl">Fixed code</p>' + pre(q.fixed) : "");
+    }
+    return "";
+  }
+
+  function gradePractice(card, q) {
+    var k = q.k;
+    var values = Array.prototype.map.call(card.querySelectorAll("[data-pans]"), function (el) { return el.value; });
+    if (k === "mcq") {
+      var picks = Array.prototype.map.call(card.querySelectorAll("[data-pans]:checked"), function (el) { return +el.value; });
+      if (!picks.length) return { error: "Choose an answer first." };
+      var right = q.multi ? q.ans : [q.ans];
+      var same = picks.length === right.length && right.every(function (i) { return picks.indexOf(i) >= 0; });
+      return { ok: same };
+    }
+    if (k === "debug") {
+      var picked = card.querySelector("[data-pkind]:checked");
+      if (!picked) return { error: "Choose the kind of error first." };
+      var want = q.errType.toLowerCase().split(" ")[0];
+      return { ok: picked.value === want };
+    }
+    if (k === "predict") {
+      if (!values[0].trim() && q.output !== "") return { error: "Type the output you expect first." };
+      var one = checkOutput(values[0], q.output, q.code, q);
+      return { ok: one !== "fail", note: one === "near" ? "Correct, apart from the spacing or blank lines." : "" };
+    }
+    if (k === "trace") {
+      if (values.every(function (v) { return !v.trim(); })) return { error: "Type your answers first." };
+      var each = q.cases.map(function (c, i) { return checkOutput(values[i], c[1], q.code, q); });
+      return { ok: each.every(function (r) { return r !== "fail"; }), note: each.indexOf("near") >= 0 ? "Correct, apart from the spacing or blank lines." : "" };
+    }
+    if (k === "fill") {
+      if (values.every(function (v) { return !v.trim(); })) return { error: "Fill in the blank first." };
+      var good = q.blanks.map(function (opts, i) { return checkBlanks([values[i]], [opts]); });
+      return { ok: good.every(Boolean) };
+    }
+    if (k === "parsons") {
+      if (!values[0].trim()) return { error: "Type the line numbers first." };
+      return { ok: checkOrder(values[0], q.order) };
+    }
+    if (k === "tracetable") {
+      var cells = card.querySelectorAll("[data-pcell]");
+      var filled = Array.prototype.some.call(cells, function (el) { return el.value.trim(); });
+      if (!filled) return { error: "Fill in the table first." };
+      var allOk = true;
+      Array.prototype.forEach.call(cells, function (el) {
+        var bits = el.dataset.pcell.split("-").map(Number);
+        var cellGood = cellOk(el.value, q.rows[bits[0]][bits[1]]);
+        el.classList.toggle("ok", cellGood);
+        el.classList.toggle("bad", !cellGood);
+        allOk = allOk && cellGood;
+      });
+      return { ok: allOk };
+    }
+    if (k === "refute") {
+      var R = REFUTE[q.id];
+      if (!R) return { error: "This question cannot be practised automatically." };
+      var els = card.querySelectorAll("[data-parg]");
+      var vals = [];
+      for (var i = 0; i < R.args.length; i++) {
+        var a = R.args[i], el = els[i];
+        if (a.type === "bool") { vals.push(el.value === "True"); continue; }
+        var raw = (el.value || "").trim();
+        if (!/^-?\d+$/.test(raw)) return { error: "Give " + a.n + " a whole number." };
+        var n = parseInt(raw, 10);
+        if (a.min !== undefined && n < a.min) return { error: a.n + " must be " + a.min + " or more." };
+        vals.push(n);
+      }
+      var got = R.buggy.apply(null, vals), wanted = R.correct.apply(null, vals);
+      var call = q.code.split("def ")[1].split("(")[0] + "(" + vals.map(PY).join(", ") + ")";
+      var detail = "<p class=\"expl\"><code class=\"i\">" + esc(call) + "</code> gives <code class=\"i\">" + esc(PY(got)) +
+        "</code> in the buggy version, and should give <code class=\"i\">" + esc(PY(wanted)) + "</code>.</p>";
+      return { ok: got !== wanted, detail: detail };
+    }
+    return { error: "This question cannot be practised automatically." };
+  }
+
+  function practiceCard(q) {
+    var last = lastPractice(q.id);
+    var lastTxt = last
+      ? "Last practice: " + (last.result === "pass" ? "correct" : "not quite") + " (" + (last.mode === "self" ? "self-marked" : "auto-checked") + ") on " + fmtWhen(last.at) + "."
+      : "No practice attempts recorded yet.";
+    return '<article class="prac-card" data-qid="' + q.id + '">' +
+      '<div class="prac-head"><span class="prac-id">' + esc(q.id) + "</span><strong>" + esc(q.title || ("Question " + q.id)) + "</strong>" +
+      '<span class="status" data-s="fail">✗ ORIGINAL: NOT QUITE</span></div>' +
+      '<p class="prac-meta">Module ' + q.m + " · " + esc(partName(q.part)) + (q.lvl ? " · " + esc(LEVELS[q.lvl]) : "") + " · " + esc(topicNames(q)) + "</p>" +
+      '<div class="prompt">' + md(q.p) + "</div>" +
+      '<div class="prac-body">' + pracBody(q) + "</div>" +
+      '<div class="prac-actions">' +
+      (q.k === "write"
+        ? '<button class="btn" type="button" data-prac="solution">Show sample solution &amp; self-mark</button>'
+        : '<button class="btn" type="button" data-prac="submit">Check my practice answer</button>') +
+      '<button class="btn sec" type="button" data-prac="open">Open in the question section</button>' +
+      '<button class="btn sec" type="button" data-prac="again">Try again</button></div>' +
+      '<p class="tool-status" data-prac-status role="status" aria-live="polite">' + esc(lastTxt) + "</p>" +
+      '<div class="prac-fb" aria-live="polite"></div></article>';
+  }
+
+  function renderPractice() {
+    var host = document.getElementById("practice-list");
+    if (!host) return;
+    var list = mistakes();
+    document.getElementById("n-mistakes").textContent = String(list.length);
+    if (!list.length) {
+      host.innerHTML = '<div class="empty">No mistakes recorded yet. When you answer a question incorrectly, it appears here so you can try it again — your original result and practice attempts are kept separately.</div>';
+      return;
+    }
+    host.innerHTML = list.map(practiceCard).join("");
+  }
+
+  function submitPractice(card, q) {
+    var fb = card.querySelector(".prac-fb");
+    var statusEl = card.querySelector("[data-prac-status]");
+    var res = gradePractice(card, q);
+    if (res.error) {
+      fb.innerHTML = '<p class="feedback" data-s="fail">' + esc(res.error) + "</p>";
+      return;
+    }
+    var saved = recordPractice(q.id, res.ok ? "pass" : "fail", "auto");
+    var head = res.ok
+      ? "Correct" + (res.note ? " — " + res.note : "!")
+      : "Not quite. Here is the correct answer:";
+    fb.innerHTML = '<p class="feedback" data-s="' + (res.ok ? "pass" : "fail") + '">' + esc(head) + "</p>" +
+      (res.detail || "") + '<div class="prac-answer">' + pracAnswer(q) + explHtml(q) + "</div>";
+    Array.prototype.forEach.call(card.querySelectorAll("[data-pans], [data-pcell], [data-parg], [data-pkind]"), function (el) { el.disabled = true; });
+    Array.prototype.forEach.call(card.querySelectorAll('[data-prac="submit"]'), function (b) { b.disabled = true; });
+    if (statusEl) {
+      statusEl.textContent = saved
+        ? "Practice attempt saved. Your original result is unchanged."
+        : "Could not save the practice attempt: browser storage is unavailable.";
+      statusEl.dataset.s = saved ? "pass" : "fail";
+    }
+    renderPracticeCount();
+    renderDashboard();
+  }
+
+  function showPracticeSolution(card, q) {
+    var fb = card.querySelector(".prac-fb");
+    fb.innerHTML = '<div class="prac-answer">' + pracAnswer(q) + explHtml(q) + "</div>" +
+      '<p class="tool-note">Mark this yourself: did your program do what the question asked? Your original result stays as it is.</p>' +
+      '<div class="prac-actions"><button class="btn" type="button" data-prac="self-pass">I got it right</button>' +
+      '<button class="btn sec" type="button" data-prac="self-fail">Still tricky</button></div>';
+    Array.prototype.forEach.call(card.querySelectorAll('[data-prac="solution"]'), function (b) { b.disabled = true; });
+  }
+
+  function selfMarkPractice(card, q, ok) {
+    var fb = card.querySelector(".prac-fb");
+    var statusEl = card.querySelector("[data-prac-status]");
+    var saved = recordPractice(q.id, ok ? "pass" : "fail", "self");
+    if (fb) {
+      var note = fb.querySelector(".prac-actions");
+      if (note) note.remove();
+    }
+    if (statusEl) {
+      statusEl.textContent = saved
+        ? "Self-marked practice saved (" + (ok ? "got it right" : "still tricky") + "). Your original result is unchanged."
+        : "Could not save the practice attempt: browser storage is unavailable.";
+      statusEl.dataset.s = saved ? "pass" : "fail";
+    }
+    renderPracticeCount();
+    renderDashboard();
+  }
+
+  function renderPracticeCount() {
+    var el = document.getElementById("n-mistakes");
+    if (el) el.textContent = String(mistakes().length);
+  }
+
+  /* ---------- 2. Progress dashboard ---------- */
+
+  function countsFor(list) {
+    var c = { total: 0, attempted: 0, remaining: 0, autoTotal: 0, autoAttempted: 0, autoRight: 0, autoWrong: 0, writeTotal: 0, writeDone: 0 };
+    list.forEach(function (q) {
+      var s = st(q.id);
+      c.total += 1;
+      if (s) c.attempted += 1;
+      if (q.k === "write") {
+        c.writeTotal += 1;
+        if (s === "done") c.writeDone += 1;
+      } else {
+        c.autoTotal += 1;
+        if (s === "pass") { c.autoRight += 1; c.autoAttempted += 1; }
+        else if (s === "fail") { c.autoWrong += 1; c.autoAttempted += 1; }
+      }
+    });
+    c.remaining = c.total - c.attempted;
+    return c;
+  }
+
+  function practiceStats() {
+    var s = { questions: 0, attempts: 0, auto: 0, autoRight: 0, autoWrong: 0, self: 0, selfRight: 0 };
+    Object.keys(PRACTICE).forEach(function (id) {
+      if (!IDS[id]) return;
+      var p = PRACTICE[id];
+      if (!p || !Array.isArray(p.attempts)) return;
+      s.questions += 1;
+      p.attempts.forEach(function (a) {
+        if (!a || (a.result !== "pass" && a.result !== "fail")) return;
+        s.attempts += 1;
+        if (a.mode === "self") { s.self += 1; if (a.result === "pass") s.selfRight += 1; }
+        else { s.auto += 1; if (a.result === "pass") s.autoRight += 1; else s.autoWrong += 1; }
+      });
+    });
+    return s;
+  }
+
+  function statCard(k, v, sub) {
+    return '<div class="stat"><span class="stat-k">' + esc(k) + '</span><span class="stat-v">' + esc(v) + "</span>" +
+      (sub ? '<span class="stat-s">' + esc(sub) + "</span>" : "") + "</div>";
+  }
+
+  function dashHead(first) {
+    return "<thead><tr><th scope=\"col\">" + esc(first) + '</th><th scope="col">Total</th><th scope="col">Attempted</th>' +
+      '<th scope="col">Correct (auto)</th><th scope="col">Incorrect (auto)</th><th scope="col">Writing done (self)</th>' +
+      '<th scope="col">Remaining</th><th scope="col">Accuracy (auto)</th></tr></thead>';
+  }
+
+  function progressRow(label, c) {
+    return "<tr><th scope=\"row\">" + label + "</th>" +
+      '<td class="num">' + c.total + "</td>" +
+      '<td class="num">' + c.attempted + "</td>" +
+      '<td class="num">' + c.autoRight + "</td>" +
+      '<td class="num">' + c.autoWrong + "</td>" +
+      '<td class="num">' + c.writeDone + " / " + c.writeTotal + "</td>" +
+      '<td class="num">' + c.remaining + "</td>" +
+      '<td class="num">' + pct(c.autoRight, c.autoAttempted) + "</td></tr>";
+  }
+
+  function renderDashboard() {
+    var host = document.getElementById("dashboard-body");
+    if (!host) return;
+    var all = countsFor(DATA.items);
+    var ps = practiceStats();
+    var h = '<div class="tool-block"><h3>Overall progress</h3>' +
+      '<p class="tool-note">These totals cover <strong>all questions in the bank</strong> — Important and Additional — not the questions in your current filter or your Important-only setting.</p>' +
+      '<div class="dash-grid">' +
+      statCard("Questions", String(all.total), "In the bank") +
+      statCard("Attempted", String(all.attempted), "Answered at least once") +
+      statCard("Correct", String(all.autoRight), "Automatically graded") +
+      statCard("Incorrect", String(all.autoWrong), "Automatically graded") +
+      statCard("Remaining", String(all.remaining), "Not tried yet") +
+      statCard("Accuracy", pct(all.autoRight, all.autoAttempted), "Correct ÷ auto-graded attempts") +
+      "</div>" +
+      '<div class="table-wrap"><table class="dash-table">' + dashHead("All questions") + "<tbody>" +
+      progressRow("All questions", all) + "</tbody></table></div>" +
+      '<p class="tool-note">Accuracy is calculated from automatically graded answers only: correct ÷ (correct + incorrect) on auto-graded questions. Writing questions are marked by you, so they appear as “writing done (self)” and are kept out of accuracy.</p>' +
+      "</div>";
+
+    h += '<div class="tool-block"><h3>By module</h3><div class="table-wrap"><table class="dash-table">' + dashHead("Module") +
+      "<tbody>" + MODS.map(function (m) {
+        return progressRow("Module " + m, countsFor(DATA.items.filter(function (q) { return q.m === m; })));
+      }).join("") + "</tbody></table></div></div>";
+
+    h += '<div class="tool-block"><h3>By topic</h3>' +
+      '<p class="tool-note">A question can cover more than one topic, so it is counted once in the overall row and once in each of its topic rows. That is why the topic rows add up to more than the overall total.</p>' +
+      '<div class="table-wrap"><table class="dash-table">' + dashHead("Topic") + "<tbody>" +
+      MODS.map(function (m) {
+        return MODULE_TOPICS[m].map(function (t) {
+          var c = countsFor(DATA.items.filter(function (q) { return q.m === m && q.t.indexOf(t) >= 0; }));
+          return progressRow(esc(t + ". " + TOPICS[t]) + ' <span class="tool-status">· Module ' + m + "</span>", c);
+        }).join("");
+      }).join("") + "</tbody></table></div></div>";
+
+    h += '<div class="tool-block"><h3>Auto-graded results and self-marked writing</h3><div class="dash-grid">' +
+      statCard("Auto-graded questions", String(all.autoTotal), all.autoAttempted + " attempted") +
+      statCard("Auto-graded correct", String(all.autoRight), "") +
+      statCard("Auto-graded incorrect", String(all.autoWrong), "") +
+      statCard("Writing questions", String(all.writeTotal), "Self-marked") +
+      statCard("Writing done", String(all.writeDone), "Marked done by you") +
+      "</div><p class=\"tool-note\">Writing questions cannot be graded automatically. “Writing done” means you marked them done yourself, so it is shown separately from correct answers and is not part of accuracy.</p></div>";
+
+    h += '<div class="tool-block"><h3>Practice attempts</h3>' +
+      '<p class="tool-note">Practice attempts are recorded separately and never change your original results. Accuracy here uses automatically checked practice attempts only; self-marked writing practice is counted on its own.</p>' +
+      '<div class="dash-grid">' +
+      statCard("Practice attempts", String(ps.attempts), "Across " + ps.questions + " questions") +
+      statCard("Auto-checked", String(ps.auto), "Practice attempts") +
+      statCard("Practice correct", String(ps.autoRight), "Auto-checked") +
+      statCard("Practice accuracy", pct(ps.autoRight, ps.auto), "Auto-checked only") +
+      statCard("Self-marked", String(ps.self), ps.selfRight + " marked correct") +
+      "</div></div>";
+
+    host.innerHTML = h;
+  }
+
+  /* ---------- 3. Bookmarks and personal notes ---------- */
+
+  function syncCardBookmark(card) {
+    var id = card.dataset.id;
+    var btn = card.querySelector('[data-qt="bookmark"]');
+    if (!btn) return;
+    var on = !!BOOKMARKS[id];
+    btn.setAttribute("aria-pressed", on ? "true" : "false");
+    var label = btn.querySelector("[data-qt-label]");
+    if (label) label.textContent = on ? "Bookmarked" : "Bookmark";
+  }
+
+  function injectCardTools(card) {
+    var id = card.dataset.id, q = IDS[id];
+    if (!q || card.getAttribute("data-qtools") === "1" || card.querySelector(":scope > .qtools")) return;
+    card.setAttribute("data-qtools", "1");
+    var bar = document.createElement("div");
+    bar.className = "qtools";
+    bar.innerHTML =
+      '<button class="qt-btn" type="button" data-qt="bookmark" aria-pressed="false"><span aria-hidden="true">★</span> <span data-qt-label>Bookmark</span></button>' +
+      '<button class="qt-btn" type="button" data-qt="link">Copy question link</button>' +
+      '<span class="qt-msg" data-qt-msg role="status" aria-live="polite"></span>' +
+      '<details class="qt-note"><summary>Personal note</summary>' +
+      '<label class="sr-only" for="note-' + card.id + '">Personal note for question ' + esc(q.id) + "</label>" +
+      '<textarea id="note-' + card.id + '" data-qnote rows="3" maxlength="' + MAX_NOTE + '" placeholder="Write a note for yourself. It is saved in this browser only."></textarea>' +
+      '<div class="qt-note-row"><button class="btn sec" type="button" data-qt="savenote">Save note</button>' +
+      '<span class="qt-notestatus" data-qnotestatus role="status" aria-live="polite"></span></div></details>';
+    card.appendChild(bar);
+    var ta = bar.querySelector("[data-qnote]");
+    var note = NOTES[id] && typeof NOTES[id].text === "string" ? NOTES[id].text : "";
+    ta.value = note;
+    if (note) {
+      var stEl = bar.querySelector("[data-qnotestatus]");
+      stEl.textContent = "Saved";
+      stEl.dataset.s = "pass";
+    }
+    syncCardBookmark(card);
+  }
+
+  function saveNote(id, value, msgEl) {
+    var text = String(value || "").slice(0, MAX_NOTE);
+    if (!text.trim()) delete NOTES[id];
+    else NOTES[id] = { text: text, updated: Date.now() };
+    var ok = writeJSON(NOTES_KEY, NOTES);
+    if (msgEl) {
+      msgEl.textContent = ok ? (text.trim() ? "Note saved ✓" : "Note removed") : "Could not save: browser storage is unavailable.";
+      msgEl.dataset.s = ok ? "pass" : "fail";
+    }
+    return ok;
+  }
+
+  function renderBookmarks() {
+    var host = document.getElementById("bookmarks-body");
+    if (!host) return;
+    var items = DATA.items.filter(function (q) { return !!BOOKMARKS[q.id]; });
+    var badge = document.getElementById("n-bookmarks");
+    if (badge) badge.textContent = String(items.length);
+    if (!items.length) {
+      host.innerHTML = '<div class="empty">No bookmarked questions yet. Use the ★ Bookmark button at the bottom of any question card to keep it here.</div>';
+      return;
+    }
+    host.innerHTML = items.map(function (q) {
+      var n = NOTES[q.id];
+      return '<article class="bm-item" data-qid="' + q.id + '">' +
+        '<div class="bm-head"><code class="bm-id">' + esc(q.id) + '</code><span class="bm-title">' + esc(q.title || String(q.p).split("\n")[0]) + "</span></div>" +
+        '<p class="bm-meta">Module ' + q.m + " · " + esc(partName(q.part)) + (q.lvl ? " · " + esc(LEVELS[q.lvl]) : "") + " · " + esc(topicNames(q)) + "</p>" +
+        (n && n.text ? '<p class="bm-note">' + esc(n.text) + "</p>" : '<p class="bm-meta">No personal note.</p>') +
+        '<div class="bm-actions"><button class="btn sec" type="button" data-bm="open">Open question</button>' +
+        '<button class="btn sec" type="button" data-bm="remove">Remove bookmark</button></div></article>';
+    }).join("");
+  }
+
+  function updateToolCounts() {
+    renderPracticeCount();
+    var badge = document.getElementById("n-bookmarks");
+    if (badge) badge.textContent = String(Object.keys(BOOKMARKS).filter(function (id) { return !!IDS[id]; }).length);
+  }
+
+  /* ---------- 4. Search and direct question links ---------- */
+
+  function questionUrl(id) {
+    var q = IDS[id];
+    if (!q) return location.href;
+    try {
+      var u = new URL(location.href);
+      u.search = "?q=" + encodeURIComponent(id);
+      u.hash = "#m" + q.m + "-" + q.part;   // the site's own hash format, e.g. #m4-writing
+      return u.href;
+    } catch (e) { return location.href; }
+  }
+
+  function pushQuestionUrl(id) {
+    var url = questionUrl(id);
+    if (url === location.href) return;
+    try { history.pushState({ q: id }, "", url); } catch (e) { /* embedded views may not allow it */ }
+  }
+
+  function hideTools() {
+    var panel = document.getElementById("panel-tools");
+    if (!panel || panel.hidden) return;
+    panel.hidden = true;
+    var btn = document.getElementById("tools-open");
+    if (btn) btn.setAttribute("aria-expanded", "false");
+  }
+
+  function revealQuestion(id, opts) {
+    opts = opts || {};
+    var q = IDS[id];
+    if (!q) return false;
+    hideTools();
+    if (!q.imp && MODE !== "all") setMode("all", true);
+    var key = q.m + "-" + q.part;
+    showTab("m" + q.m, q.part);
+    resetFilters(key, q.lvl);
+    FILT[key].t = "";
+    FILT[key].status = "";
+    renderFilters(key);
+    applyFilters(key);
+    var idx = (CUR[key] || []).findIndex(function (item) { return item.id === id; });
+    if (idx < 0) {
+      resetFilters(key);
+      FILT[key].t = "";
+      FILT[key].status = "";
+      renderFilters(key);
+      applyFilters(key);
+      idx = (CUR[key] || []).findIndex(function (item) { return item.id === id; });
+    }
+    if (idx < 0) return false;
+    SHOWN[key] = Math.max(SHOWN[key] || PAGE, idx + 1);
+    drawList(key);
+    var el = document.getElementById(key + "-" + id);
+    if (!el) return false;
+    el.scrollIntoView({ block: "start" });
+    el.classList.add("q-flash");
+    window.setTimeout(function () { el.classList.remove("q-flash"); }, 2000);
+    if (opts.push === false) {
+      // the browser restores its own scroll position just after Back/Forward, so scroll again afterwards
+      window.setTimeout(function () { el.scrollIntoView({ block: "start" }); }, 120);
+      try { history.replaceState({ q: id }, "", questionUrl(id)); } catch (e) {}
+    } else {
+      pushQuestionUrl(id);
+    }
+    return true;
+  }
+
+  function copyQuestionLink(id, msgEl) {
+    var url = questionUrl(id);
+    function good() { setStatus(msgEl, "Link copied", "pass"); }
+    function bad() {
+      if (!msgEl) return;
+      msgEl.dataset.s = "fail";
+      msgEl.innerHTML = 'Could not copy automatically. Select and copy this link: <input class="qt-link" type="text" readonly value="' + esc(url) + '" aria-label="Question link">';
+      var input = msgEl.querySelector("input");
+      if (input) { input.focus(); input.select(); }
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(good, bad);
+    } else bad();
+  }
+
+  function runSearch(term) {
+    var raw = String(term || "").trim();
+    var status = document.getElementById("search-status");
+    var host = document.getElementById("search-results");
+    if (!host) return;
+    if (!raw) {
+      setStatus(status, "");
+      host.innerHTML = "";
+      return;
+    }
+    var tokens = raw.toLowerCase().split(/\s+/).filter(Boolean);
+    var found = DATA.items.filter(function (q) {
+      var hay = [q.id, q.id.replace(/-/g, " "), q.title || "", q.p, "module " + q.m, "m" + q.m, String(q.m),
+        partName(q.part), q.part, q.t.map(function (t) { return t + " " + TOPICS[t]; }).join(" ")].join(" ").toLowerCase();
+      return tokens.every(function (tok) { return hay.indexOf(tok) >= 0; });
+    });
+    setStatus(status, found.length ? found.length + (found.length === 1 ? " question matches “" : " questions match “") + raw + "”" : "No questions match “" + raw + "”");
+    if (!found.length) {
+      host.innerHTML = '<div class="empty">No results for “' + esc(raw) + '”. Check the spelling, or try a question ID like d1n-q1, a module number, or a topic such as “Strings”.</div>';
+      return;
+    }
+    host.innerHTML = found.slice(0, 60).map(function (q) {
+      var prompt = String(q.p).replace(/\s+/g, " ");
+      var snippet = prompt.slice(0, 150);
+      return '<article class="sr-item"><div class="sr-head"><code class="prac-id">' + esc(q.id) + "</code><strong>" +
+        esc(q.title || (partName(q.part) + " question")) + "</strong></div>" +
+        '<p class="sr-snip">' + esc(snippet) + (prompt.length > 150 ? "…" : "") + "</p>" +
+        '<p class="bm-meta">Module ' + q.m + " · " + esc(partName(q.part)) + " · " + esc(topicNames(q)) + "</p>" +
+        '<div class="bm-actions"><button class="btn sec" type="button" data-sq="' + esc(q.id) + '">Open this question</button></div></article>';
+    }).join("") + (found.length > 60 ? '<p class="tool-note">Showing the first 60 of ' + found.length + " matches. Make the search more specific.</p>" : "");
+  }
+
+  /* ---------- 5. Progress export / import ---------- */
+
+  function sanitizeProgress(v) {
+    if (!isObj(v)) return null;
+    var out = {};
+    if (typeof v.s === "string" && ["pass", "fail", "done", ""].indexOf(v.s) >= 0) out.s = v.s;
+    else return null;
+    if (Array.isArray(v.ans)) out.ans = v.ans.filter(function (x) { return typeof x === "string"; }).slice(0, 50);
+    if (Array.isArray(v.cells)) out.cells = v.cells.slice(0, 50).map(function (row) {
+      return Array.isArray(row) ? row.map(function (c) { return typeof c === "string" ? c : String(c); }).slice(0, 30) : [];
+    });
+    if (typeof v.pick === "number" && isFinite(v.pick)) out.pick = v.pick;
+    if (Array.isArray(v.picks)) out.picks = v.picks.filter(function (n) { return typeof n === "number" && isFinite(n); }).slice(0, 10);
+    if (typeof v.err === "string") out.err = v.err.slice(0, 20);
+    if (Array.isArray(v.args)) out.args = v.args.map(function (x) { return typeof x === "string" ? x : String(x); }).slice(0, 10);
+    if (v.sol === true) out.sol = true;
+    return out;
+  }
+
+  function sanitizePractice(v) {
+    if (!isObj(v) || !Array.isArray(v.attempts)) return null;
+    var attempts = [];
+    v.attempts.slice(-MAX_ATTEMPTS).forEach(function (a) {
+      if (!isObj(a)) return;
+      var result = a.result === "pass" ? "pass" : a.result === "fail" ? "fail" : "";
+      if (!result) return;
+      var at = typeof a.at === "number" && isFinite(a.at) ? a.at : Date.now();
+      attempts.push({ at: at, result: result, mode: a.mode === "self" ? "self" : "auto" });
+    });
+    return attempts.length ? { attempts: attempts } : null;
+  }
+
+  function sanitizeNote(v) {
+    if (!isObj(v)) return null;
+    if (typeof v.text !== "string") return null;
+    var text = v.text.slice(0, MAX_NOTE);
+    if (!text.trim()) return null;
+    return { text: text, updated: typeof v.updated === "number" && isFinite(v.updated) ? v.updated : Date.now() };
+  }
+
+  function sanitizeBookmark(v) {
+    if (!isObj(v)) return null;
+    return { at: typeof v.at === "number" && isFinite(v.at) ? v.at : Date.now() };
+  }
+
+  function buildBackup() {
+    var progress = {}, practice = {}, bookmarks = {}, notes = {};
+    Object.keys(store).forEach(function (id) { if (IDS[id]) progress[id] = store[id]; });
+    Object.keys(PRACTICE).forEach(function (id) { if (IDS[id]) practice[id] = PRACTICE[id]; });
+    Object.keys(BOOKMARKS).forEach(function (id) { if (IDS[id]) bookmarks[id] = BOOKMARKS[id]; });
+    Object.keys(NOTES).forEach(function (id) { if (IDS[id]) notes[id] = NOTES[id]; });
+    var attempts = 0;
+    Object.keys(practice).forEach(function (id) {
+      if (practice[id] && Array.isArray(practice[id].attempts)) attempts += practice[id].attempts.length;
+    });
+    return {
+      schema: BACKUP_SCHEMA,
+      version: BACKUP_VERSION,
+      site: BACKUP_SITE,
+      exportedAt: new Date().toISOString(),
+      summary: {
+        answers: Object.keys(progress).length,
+        practiceAttempts: attempts,
+        bookmarks: Object.keys(bookmarks).length,
+        notes: Object.keys(notes).length,
+      },
+      progress: progress,
+      practice: practice,
+      bookmarks: bookmarks,
+      notes: notes,
+    };
+  }
+
+  function downloadBackup(statusEl) {
+    try {
+      var payload = buildBackup();
+      var blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = "python-revision-backup-" + new Date().toISOString().slice(0, 10) + ".json";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+      setStatus(statusEl, "Backup downloaded. Keep the file safe.", "pass");
+    } catch (e) {
+      setStatus(statusEl, "Could not create the backup file in this browser.", "fail");
+    }
+  }
+
+  function validateBackup(raw) {
+    var errors = [], warnings = [], unknown = [];
+    var data = { progress: {}, practice: {}, bookmarks: {}, notes: {} };
+    if (!isObj(raw)) {
+      return { ok: false, errors: ["The file does not contain a JSON object."], warnings: warnings, unknown: unknown, data: data };
+    }
+    if (raw.schema !== BACKUP_SCHEMA) errors.push('This is not a revision-website backup: "schema" should be "' + BACKUP_SCHEMA + '".');
+    if (typeof raw.version !== "number" || raw.version < 1 || raw.version > BACKUP_VERSION) {
+      errors.push("Unsupported backup version (" + String(raw.version) + "). This website can read version " + BACKUP_VERSION + ".");
+    }
+    if (raw.site !== undefined && raw.site !== BACKUP_SITE) {
+      warnings.push("This backup was made by a different website (" + String(raw.site) + "). Question IDs are still checked before anything is imported.");
+    }
+    if (raw.exportedAt !== undefined && (typeof raw.exportedAt !== "string" || isNaN(Date.parse(raw.exportedAt)))) {
+      warnings.push("The export timestamp is missing or not a valid date.");
+    }
+    if (errors.length) return { ok: false, errors: errors, warnings: warnings, unknown: unknown, data: data };
+
+    if (raw.progress === undefined) warnings.push("The file has no saved answers.");
+    else if (!isObj(raw.progress)) errors.push('"progress" must be an object keyed by question ID.');
+    else Object.keys(raw.progress).forEach(function (id) {
+      if (!IDS[id]) { unknown.push(id); return; }
+      var rec = sanitizeProgress(raw.progress[id]);
+      if (!rec) { warnings.push("Skipped an invalid answer entry for " + id + "."); return; }
+      data.progress[id] = rec;
+    });
+
+    if (raw.practice !== undefined) {
+      if (!isObj(raw.practice)) errors.push('"practice" must be an object keyed by question ID.');
+      else Object.keys(raw.practice).forEach(function (id) {
+        if (!IDS[id]) { unknown.push(id); return; }
+        var rec = sanitizePractice(raw.practice[id]);
+        if (!rec) { warnings.push("Skipped an invalid practice entry for " + id + "."); return; }
+        data.practice[id] = rec;
+      });
+    }
+
+    if (raw.bookmarks !== undefined) {
+      if (!isObj(raw.bookmarks)) errors.push('"bookmarks" must be an object keyed by question ID.');
+      else Object.keys(raw.bookmarks).forEach(function (id) {
+        if (!IDS[id]) { unknown.push(id); return; }
+        var rec = sanitizeBookmark(raw.bookmarks[id]);
+        if (rec) data.bookmarks[id] = rec;
+      });
+    }
+
+    if (raw.notes !== undefined) {
+      if (!isObj(raw.notes)) errors.push('"notes" must be an object keyed by question ID.');
+      else Object.keys(raw.notes).forEach(function (id) {
+        if (!IDS[id]) { unknown.push(id); return; }
+        var rec = sanitizeNote(raw.notes[id]);
+        if (!rec) { warnings.push("Skipped an invalid note for " + id + "."); return; }
+        data.notes[id] = rec;
+      });
+    }
+
+    var practiceAttempts = 0;
+    Object.keys(data.practice).forEach(function (id) { practiceAttempts += data.practice[id].attempts.length; });
+    var conflicts = 0, noteConflicts = 0;
+    Object.keys(data.progress).forEach(function (id) { if (store[id]) conflicts += 1; });
+    Object.keys(data.notes).forEach(function (id) { if (NOTES[id]) noteConflicts += 1; });
+
+    return {
+      ok: errors.length === 0,
+      errors: errors,
+      warnings: warnings,
+      unknown: unknown,
+      data: data,
+      summary: {
+        progress: Object.keys(data.progress).length,
+        practiceQuestions: Object.keys(data.practice).length,
+        practiceAttempts: practiceAttempts,
+        bookmarks: Object.keys(data.bookmarks).length,
+        notes: Object.keys(data.notes).length,
+        conflicts: conflicts,
+        noteConflicts: noteConflicts,
+      },
+    };
+  }
+
+  function applyBackupData(validated, replace) {
+    if (!validated || !validated.ok) return { ok: false, error: "This file was not a valid backup, so nothing was imported." };
+    if (!storageOk) return { ok: false, error: "Browser storage is unavailable, so nothing was imported." };
+    var out = { ok: true, answersAdded: 0, answersKept: 0, notesAdded: 0, notesKept: 0, attemptsAdded: 0, bookmarksAdded: 0, changed: [] };
+    var data = validated.data;
+
+    Object.keys(data.progress).forEach(function (id) {
+      if (store[id] && !replace) { out.answersKept += 1; return; }
+      store[id] = Object.assign({}, data.progress[id]);
+      out.answersAdded += 1;
+      out.changed.push(id);
+    });
+    if (out.answersAdded) save();
+
+    Object.keys(data.practice).forEach(function (id) {
+      var incoming = data.practice[id].attempts;
+      var mine = PRACTICE[id] && Array.isArray(PRACTICE[id].attempts) ? PRACTICE[id].attempts : [];
+      var seen = {};
+      mine.forEach(function (a) { seen[a.at + "|" + a.result + "|" + a.mode] = true; });
+      var merged = mine.slice();
+      incoming.forEach(function (a) {
+        var key = a.at + "|" + a.result + "|" + a.mode;
+        if (seen[key]) return;
+        seen[key] = true;
+        merged.push(a);
+        out.attemptsAdded += 1;
+      });
+      if (merged.length > MAX_ATTEMPTS) merged = merged.slice(-MAX_ATTEMPTS);
+      PRACTICE[id] = { attempts: merged };
+    });
+    if (out.attemptsAdded) writeJSON(PRACTICE_KEY, PRACTICE);
+
+    Object.keys(data.bookmarks).forEach(function (id) {
+      if (BOOKMARKS[id]) return;
+      BOOKMARKS[id] = Object.assign({}, data.bookmarks[id]);
+      out.bookmarksAdded += 1;
+    });
+    if (out.bookmarksAdded) writeJSON(BOOKMARK_KEY, BOOKMARKS);
+
+    Object.keys(data.notes).forEach(function (id) {
+      if (NOTES[id] && !replace) { out.notesKept += 1; return; }
+      NOTES[id] = Object.assign({}, data.notes[id]);
+      out.notesAdded += 1;
+      syncNoteField(id);
+    });
+    if (out.notesAdded) writeJSON(NOTES_KEY, NOTES);
+
+    out.changed.forEach(function (id) { refreshCard(id); });
+    refreshRuns();
+    return out;
+  }
+
+  function syncNoteField(id) {
+    var note = NOTES[id] && typeof NOTES[id].text === "string" ? NOTES[id].text : "";
+    Array.prototype.forEach.call(document.querySelectorAll('.card[data-id="' + id.replace(/"/g, '\\"') + '"]'), function (card) {
+      var ta = card.querySelector("[data-qnote]");
+      if (ta) {
+        ta.value = note;
+        var msg = card.querySelector("[data-qnotestatus]");
+        if (msg) {
+          msg.textContent = note ? "Saved" : "";
+          if (note) msg.dataset.s = "pass"; else msg.removeAttribute("data-s");
+        }
+      }
+    });
+  }
+
+  function renderImportPreview(validated, file) {
+    var host = document.getElementById("import-preview");
+    if (!host) return;
+    if (!validated) { host.hidden = true; host.innerHTML = ""; return; }
+    var s = validated.summary || { progress: 0, practiceQuestions: 0, practiceAttempts: 0, bookmarks: 0, notes: 0, conflicts: 0, noteConflicts: 0 };
+    var h = "<h4>Preview</h4>";
+    if (!validated.ok) {
+      h += '<p class="tool-status" data-s="fail">This file cannot be imported:</p><ul>' +
+        validated.errors.map(function (e) { return "<li>" + esc(e) + "</li>"; }).join("") + "</ul>";
+      host.innerHTML = h + '<div class="tool-row"><button class="btn sec" type="button" id="import-cancel">Choose another file</button></div>';
+      host.hidden = false;
+      return;
+    }
+    h += '<p class="tool-note">File: <b>' + esc(file && file.name ? file.name : "backup.json") + "</b></p>";
+    h += '<div class="table-wrap"><table class="dash-table"><thead><tr><th scope="col">In this file</th><th scope="col">Entries</th></tr></thead><tbody>' +
+      "<tr><th scope=\"row\">Saved answers</th><td class=\"num\">" + s.progress + "</td></tr>" +
+      "<tr><th scope=\"row\">Practice attempts</th><td class=\"num\">" + s.practiceAttempts + "</td></tr>" +
+      "<tr><th scope=\"row\">Bookmarks</th><td class=\"num\">" + s.bookmarks + "</td></tr>" +
+      "<tr><th scope=\"row\">Personal notes</th><td class=\"num\">" + s.notes + "</td></tr></tbody></table></div>";
+    if (s.conflicts || s.noteConflicts) {
+      h += '<p class="tool-note">Matching local entries were found: ' + s.conflicts + " saved answer" + (s.conflicts === 1 ? "" : "s") +
+        " and " + s.noteConflicts + " note" + (s.noteConflicts === 1 ? "" : "s") + ". They stay as they are unless you tick “Replace my local entry” above.</p>";
+    }
+    if (validated.unknown.length) {
+      h += '<p class="tool-status" data-s="fail">' + validated.unknown.length + " question ID" + (validated.unknown.length === 1 ? " is" : "s are") +
+        " not in this website and will be skipped:</p><ul>" + validated.unknown.slice(0, 10).map(function (id) { return "<li>" + esc(id) + "</li>"; }).join("") +
+        (validated.unknown.length > 10 ? "<li>and " + (validated.unknown.length - 10) + " more</li>" : "") + "</ul>";
+    }
+    if (validated.warnings.length) {
+      h += '<ul class="tool-note">' + validated.warnings.map(function (w) { return "<li>" + esc(w) + "</li>"; }).join("") + "</ul>";
+    }
+    h += '<div class="tool-row"><button class="btn" type="button" id="import-apply">Merge into my progress</button>' +
+      '<button class="btn sec" type="button" id="import-cancel">Cancel</button>' +
+      '<button class="btn sec" type="button" id="import-backup">Download a backup of my current data first</button></div>';
+    host.innerHTML = h;
+    host.hidden = false;
+  }
+
+  var pendingImport = null;
+
+  function readImportFile(file, statusEl) {
+    if (!file) return;
+    if (file.size > MAX_IMPORT_BYTES) {
+      setStatus(statusEl, "That file is larger than 2 MB, so it was not read. Choose a backup file made by this website.", "fail");
+      pendingImport = null;
+      renderImportPreview(null);
+      return;
+    }
+    if (file.type && ["application/json", "text/plain", "text/json", ""].indexOf(file.type) < 0 && !/\.json$/i.test(file.name || "")) {
+      setStatus(statusEl, "That does not look like a JSON backup file. Choose a .json file.", "fail");
+      pendingImport = null;
+      renderImportPreview(null);
+      return;
+    }
+    var reader = new FileReader();
+    reader.onerror = function () {
+      setStatus(statusEl, "The file could not be read. Try choosing it again.", "fail");
+      pendingImport = null;
+      renderImportPreview(null);
+    };
+    reader.onload = function () {
+      var raw;
+      try { raw = JSON.parse(String(reader.result)); }
+      catch (e) {
+        setStatus(statusEl, "That file is not valid JSON, so nothing was imported.", "fail");
+        pendingImport = null;
+        renderImportPreview(null);
+        return;
+      }
+      var validated = validateBackup(raw);
+      if (!validated.ok) {
+        setStatus(statusEl, "The file was checked and rejected. Nothing was imported.", "fail");
+        pendingImport = null;
+        renderImportPreview(validated, file);
+        return;
+      }
+      pendingImport = validated;
+      setStatus(statusEl, "Check the preview, then choose “Merge into my progress”.");
+      renderImportPreview(validated, file);
+    };
+    reader.readAsText(file);
+  }
+
+  /* ---------- panel navigation ---------- */
+
+  var currentPane = "practice";
+
+  function showToolPane(name) {
+    currentPane = name;
+    Array.prototype.forEach.call(document.querySelectorAll(".tools-tab"), function (b) {
+      b.setAttribute("aria-selected", b.dataset.tool === name ? "true" : "false");
+    });
+    Array.prototype.forEach.call(document.querySelectorAll(".tool-pane"), function (p) {
+      p.hidden = p.id !== "tool-" + name;
+    });
+    if (name === "practice") renderPractice();
+    if (name === "dashboard") renderDashboard();
+    if (name === "bookmarks") renderBookmarks();
+    if (name === "search") {
+      var input = document.getElementById("search-input");
+      if (input) input.focus();
+    }
+  }
+
+  function openTools(pane) {
+    var panel = document.getElementById("panel-tools");
+    if (!panel) return;
+    Array.prototype.forEach.call(document.querySelectorAll(".panel"), function (p) { p.hidden = p !== panel; });
+    Array.prototype.forEach.call(document.querySelectorAll(".tab"), function (t) { t.setAttribute("aria-selected", "false"); });
+    panel.hidden = false;
+    var btn = document.getElementById("tools-open");
+    if (btn) btn.setAttribute("aria-expanded", "true");
+    updateToolCounts();
+    showToolPane(pane || currentPane);
+    panel.scrollIntoView({ block: "start" });
+    var activeTab = panel.querySelector('.tools-tab[aria-selected="true"]');
+    if (activeTab) activeTab.focus({ preventScroll: true });
+  }
+
+  function closeTools() {
+    var panel = document.getElementById("panel-tools");
+    if (!panel || panel.hidden) return;
+    panel.hidden = true;
+    var btn = document.getElementById("tools-open");
+    if (btn) btn.setAttribute("aria-expanded", "false");
+    try { fromHash(); } catch (e) { showTab("home"); }
+    var selected = document.querySelector('.tab[aria-selected="true"]');
+    if (selected) selected.focus();
+  }
+
+  /* ---------- wiring ---------- */
+
+  var toolsBtn = document.getElementById("tools-open");
+  if (toolsBtn) {
+    toolsBtn.addEventListener("click", function () {
+      var panel = document.getElementById("panel-tools");
+      if (panel && !panel.hidden) closeTools();
+      else openTools();
+    });
+  }
+
+  var closeBtn = document.getElementById("tools-close");
+  if (closeBtn) closeBtn.addEventListener("click", closeTools);
+
+  var tabs = document.querySelector(".tools-tabs");
+  if (tabs) {
+    tabs.addEventListener("click", function (e) {
+      var b = e.target.closest("[data-tool]");
+      if (b) showToolPane(b.dataset.tool);
+    });
+    tabs.addEventListener("keydown", function (e) {
+      if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+      var list = Array.prototype.slice.call(tabs.querySelectorAll("[data-tool]"));
+      var i = list.indexOf(document.activeElement);
+      if (i < 0) return;
+      e.preventDefault();
+      var next = e.key === "ArrowRight" ? (i + 1) % list.length : (i - 1 + list.length) % list.length;
+      list[next].focus();
+      showToolPane(list[next].dataset.tool);
+    });
+  }
+
+  document.addEventListener("click", function (e) {
+    var tabBtn = e.target.closest(".tab, .go, [data-goto], .ptab, .dot, [data-next]");
+    if (tabBtn && !document.getElementById("panel-tools").hidden) hideTools();
+  });
+
+  document.addEventListener("click", function (e) {
+    var btn = e.target.closest("[data-qt]");
+    if (!btn) return;
+    var card = btn.closest(".card");
+    if (!card) return;
+    var id = card.dataset.id, q = IDS[id];
+    if (!q) return;
+    var msg = card.querySelector("[data-qt-msg]");
+    var act = btn.dataset.qt;
+    if (act === "bookmark") {
+      if (BOOKMARKS[id]) delete BOOKMARKS[id];
+      else BOOKMARKS[id] = { at: Date.now() };
+      var ok = writeJSON(BOOKMARK_KEY, BOOKMARKS);
+      syncCardBookmark(card);
+      setStatus(msg, ok ? (BOOKMARKS[id] ? "Bookmark added" : "Bookmark removed") : "Could not save the bookmark: browser storage is unavailable.", ok ? "pass" : "fail");
+      updateToolCounts();
+      if (!document.getElementById("tool-bookmarks").hidden) renderBookmarks();
+    } else if (act === "link") {
+      copyQuestionLink(id, msg);
+    } else if (act === "savenote") {
+      saveNote(id, card.querySelector("[data-qnote]").value, card.querySelector("[data-qnotestatus]"));
+    }
+  });
+
+  document.addEventListener("input", function (e) {
+    var ta = e.target.closest("[data-qnote]");
+    if (!ta) return;
+    var card = ta.closest(".card");
+    if (!card) return;
+    var msg = card.querySelector("[data-qnotestatus]");
+    if (msg) {
+      msg.textContent = "Not saved yet";
+      msg.removeAttribute("data-s");
+    }
+  });
+
+  var practiceHost = document.getElementById("practice-list");
+  if (practiceHost) {
+    practiceHost.addEventListener("click", function (e) {
+      var card = e.target.closest(".prac-card");
+      if (!card) return;
+      var q = IDS[card.dataset.qid];
+      if (!q) return;
+      if (e.target.closest('[data-prac="submit"]')) submitPractice(card, q);
+      else if (e.target.closest('[data-prac="solution"]')) showPracticeSolution(card, q);
+      else if (e.target.closest('[data-prac="self-pass"]')) selfMarkPractice(card, q, true);
+      else if (e.target.closest('[data-prac="self-fail"]')) selfMarkPractice(card, q, false);
+      else if (e.target.closest('[data-prac="open"]')) revealQuestion(q.id);
+      else if (e.target.closest('[data-prac="again"]')) {
+        var box = document.createElement("div");
+        box.innerHTML = practiceCard(q);
+        card.replaceWith(box.firstElementChild);
+      }
+    });
+  }
+
+  var reload = document.getElementById("practice-reload");
+  if (reload) reload.addEventListener("click", function () {
+    renderPractice();
+    setStatus(document.getElementById("practice-status"), "List refreshed.", "pass");
+  });
+
+  var bookmarksHost = document.getElementById("bookmarks-body");
+  if (bookmarksHost) {
+    bookmarksHost.addEventListener("click", function (e) {
+      var item = e.target.closest(".bm-item");
+      if (!item) return;
+      var id = item.dataset.qid;
+      if (e.target.closest('[data-bm="open"]')) revealQuestion(id);
+      else if (e.target.closest('[data-bm="remove"]')) {
+        delete BOOKMARKS[id];
+        writeJSON(BOOKMARK_KEY, BOOKMARKS);
+        Array.prototype.forEach.call(document.querySelectorAll('.card[data-id="' + id + '"]'), syncCardBookmark);
+        updateToolCounts();
+        renderBookmarks();
+      }
+    });
+  }
+
+  var searchForm = document.getElementById("search-form");
+  if (searchForm) searchForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    runSearch(document.getElementById("search-input").value);
+  });
+  var searchInput = document.getElementById("search-input");
+  if (searchInput) searchInput.addEventListener("input", function () {
+    if (!this.value.trim()) runSearch("");
+  });
+  var searchResults = document.getElementById("search-results");
+  if (searchResults) searchResults.addEventListener("click", function (e) {
+    var b = e.target.closest("[data-sq]");
+    if (b) revealQuestion(b.dataset.sq);
+  });
+
+  var exportBtn = document.getElementById("export-btn");
+  if (exportBtn) exportBtn.addEventListener("click", function () {
+    downloadBackup(document.getElementById("export-status"));
+  });
+
+  var importFile = document.getElementById("import-file");
+  if (importFile) importFile.addEventListener("change", function () {
+    readImportFile(importFile.files && importFile.files[0], document.getElementById("import-status"));
+  });
+
+  var importPreview = document.getElementById("import-preview");
+  if (importPreview) importPreview.addEventListener("click", function (e) {
+    if (e.target.closest("#import-apply")) {
+      var statusEl = document.getElementById("import-status");
+      var replace = document.getElementById("import-replace").checked;
+      var res = applyBackupData(pendingImport, replace);
+      if (!res.ok) { setStatus(statusEl, res.error, "fail"); return; }
+      setStatus(statusEl, "Imported: " + res.answersAdded + " answer" + (res.answersAdded === 1 ? "" : "s") + " added, " +
+        res.answersKept + " kept from this browser, " + res.attemptsAdded + " practice attempt" + (res.attemptsAdded === 1 ? "" : "s") +
+        " added, " + res.bookmarksAdded + " bookmark" + (res.bookmarksAdded === 1 ? "" : "s") + " added, " +
+        res.notesAdded + " note" + (res.notesAdded === 1 ? "" : "s") + " added, " + res.notesKept + " kept. Nothing was deleted.", "pass");
+      pendingImport = null;
+      renderImportPreview(null);
+      if (importFile) importFile.value = "";
+      updateToolCounts();
+      renderPractice();
+      renderDashboard();
+      renderBookmarks();
+    } else if (e.target.closest("#import-cancel")) {
+      pendingImport = null;
+      renderImportPreview(null);
+      if (importFile) importFile.value = "";
+      setStatus(document.getElementById("import-status"), "Import cancelled. Nothing was changed.");
+    } else if (e.target.closest("#import-backup")) {
+      downloadBackup(document.getElementById("import-status"));
+    }
+  });
+
+  /* ---------- direct links, history, live updates ---------- */
+
+  window.addEventListener("popstate", function () {
+    var id = new URLSearchParams(location.search).get("q");
+    if (id && IDS[id]) revealQuestion(id, { push: false });
+  });
+
+  window.addEventListener("storage", function (e) {
+    if (e.key === KEY) {
+      try { store = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (err) { store = {}; }
+      refreshRuns();
+      if (!document.getElementById("tool-dashboard").hidden) renderDashboard();
+    }
+  });
+
+  var toolsScheduled = false;
+  function scheduleCardTools() {
+    if (toolsScheduled) return;
+    toolsScheduled = true;
+    requestAnimationFrame(function () {
+      toolsScheduled = false;
+      Array.prototype.forEach.call(document.querySelectorAll(".card:not([data-qtools])"), injectCardTools);
+    });
+  }
+
+  var watcher = new MutationObserver(function (muts) {
+    for (var i = 0; i < muts.length; i++) {
+      var added = muts[i].addedNodes;
+      for (var j = 0; j < added.length; j++) {
+        var n = added[j];
+        if (n.nodeType === 1 && ((n.classList && n.classList.contains("card")) || (n.querySelector && n.querySelector(".card")))) {
+          scheduleCardTools();
+          return;
+        }
+      }
+    }
+  });
+  watcher.observe(document.body, { childList: true, subtree: true });
+
+  var pendingQuestion = new URLSearchParams(location.search).get("q");
+  if (pendingQuestion && IDS[pendingQuestion]) {
+    var welcome = document.getElementById("welcome");
+    if (welcome && !welcome.hidden) {
+      document.addEventListener("click", function (e) {
+        if (e.target.closest("#welcome-start") && pendingQuestion) {
+          var id = pendingQuestion;
+          pendingQuestion = null;
+          window.setTimeout(function () { revealQuestion(id, { push: false }); }, 0);
+        }
+      });
+    } else {
+      revealQuestion(pendingQuestion, { push: false });
+      pendingQuestion = null;
+    }
+  }
+
+  updateToolCounts();
+  scheduleCardTools();
+  if (!storageOk) {
+    var note = document.getElementById("practice-status");
+    setStatus(note, "This browser will not let the page save data, so practice attempts, bookmarks and notes cannot be kept.", "fail");
+  }
+
+  window.PYStudyTools = {
+    version: 1,
+    storageKeys: { notes: NOTES_KEY, bookmarks: BOOKMARK_KEY, practice: PRACTICE_KEY, progress: KEY },
+    buildBackup: buildBackup,
+    validateBackup: validateBackup,
+    applyBackupData: applyBackupData,
+  };
+})();
 </script>
 
 </body></html>
